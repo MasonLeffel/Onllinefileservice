@@ -14,13 +14,14 @@ public class FileClient {
 
             Scanner scanner = new Scanner(System.in);
             String message = scanner.nextLine();
-            System.out.print("Enter 'uoload,''download,'rename,' or 'delete' : ");// put file defults here
+            System.out.print("Enter 'upload,''download,'rename,' or 'delete' : ");// put file defults here
 
             SocketChannel channel = SocketChannel.open();
             channel.connect(new InetSocketAddress(args[0], serverPort));
 
             ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
             // read  the buffer content and write that to TCP channel
+
             channel.write(buffer);
 
             ByteBuffer serverReply = ByteBuffer.allocate(1024);
