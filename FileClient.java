@@ -11,25 +11,26 @@ public class FileClient {
             return;
         }
         String message;
+
         int serverPort = Integer.parseInt(args[1]);
         do {
             Scanner scanner = new Scanner(System.in);
-            message = scanner.nextLine().toUpperCase();
+            message = scanner.nextLine();
+
             System.out.print("Enter 'upload,''download,'rename,' or 'delete' : ");// put file defults here
+            String filename= scanner.nextLine();
+            ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
+            byte[] a =new byte[Status_Code_length];
+            ByteBuffer buffer = ByteBuffer.wrap((message+filename).getBytes());
             switch (message) {
                 case "delete":
                     System.out.println("Please enter file name");
-                    String filename= scanner.nextLine();
-                    ByteBuffer buffer = ByteBuffer.wrap((message+filename).getBytes());
                     SocketChannel channel = SocketChannel.open();
-
                     channel.connect(new InetSocketAddress(args[0], serverPort));
                     channel.write(buffer);
                     channel.shutdownOutput();
-                    ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
                     channel.read(code);
                     code.flip();
-                    byte[] a =new byte[Status_Code_length];
                     code.get(a);
                     System.out.println(new String(a));
 
@@ -40,6 +41,16 @@ public class FileClient {
                 case "down":
                     break;
                 case "r":
+                    System.out.println("Please enter file name");
+                    String newFileName;
+                    SocketChannel channel1 =SocketChannel.open();
+                    channel1.connect(new InetSocketAddress(args[0], serverPort));
+                    channel1.write(buffer);
+                    channel1.shutdownOutput();
+                    channel1.read(code);
+                    code.flip();
+                    code.get(a);
+                    System.out.println(new String(a));
                     break;
                 case "Q":
 
