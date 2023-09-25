@@ -16,7 +16,6 @@ public class FileClient {
         do {
             Scanner scanner = new Scanner(System.in);
             message = scanner.nextLine();
-
             System.out.print("Enter 'upload,''download,'rename,' or 'delete' : ");// put file defults here
             String filename= scanner.nextLine();
             ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
@@ -33,7 +32,7 @@ public class FileClient {
                     code.flip();
                     code.get(a);
                     System.out.println(new String(a));
-
+                    channel.close();
                     break;
                 case "u":
 
@@ -43,14 +42,15 @@ public class FileClient {
                 case "r":
                     System.out.println("Please enter file name");
                     String newFileName;
-                    SocketChannel channel1 =SocketChannel.open();
-                    channel1.connect(new InetSocketAddress(args[0], serverPort));
-                    channel1.write(buffer);
-                    channel1.shutdownOutput();
-                    channel1.read(code);
+                    SocketChannel channel2 =SocketChannel.open();
+                    channel2.connect(new InetSocketAddress(args[0], serverPort));
+                    channel2.write(buffer);
+                    channel2.shutdownOutput();
+                    channel2.read(code);
                     code.flip();
                     code.get(a);
                     System.out.println(new String(a));
+                    channel2.close();
                     break;
                 case "Q":
 
@@ -65,20 +65,4 @@ public class FileClient {
         }
     }
 }
-//while (message.equals("Q")) {
-//            // read  the buffer content and write that to TCP channel
-//
-//
-//
-//            if (bytesRead > 0) {
-//                serverReply.flip();
-//                byte[] serverMessage = new byte[bytesRead];
-//                serverReply.get(serverMessage);
-//                System.out.println(new String(serverMessage));
-//            } else {
-//                System.out.print("Error: no respone from the server.");
-//            }
-//            channel.close();
-//            channel.close();
-
 
