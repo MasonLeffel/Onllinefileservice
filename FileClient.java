@@ -4,38 +4,81 @@ import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
 public class FileClient {
-    public static void main(String[] args) throws Exception{
-        if(args.length !=2){
-            System.out.print("Syntax: TCPEchoClient <ServerIP> <ServerPort");
+   private  final static int Status_Code_length =1;
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.out.print("Syntax: TCPEFileSystem <ServerIP> <ServerPort");
             return;
         }
-        while (true) {
-            int serverPort = Integer.parseInt(args[1]);
+        String message;
 
+        int serverPort = Integer.parseInt(args[1]);
+        do {
             Scanner scanner = new Scanner(System.in);
-            String message = scanner.nextLine();
-            System.out.print("Enter 'uoload,''download,'rename,' or 'delete' : ");// put file defults here
+            message = scanner.nextLine();
 
-            SocketChannel channel = SocketChannel.open();
-            channel.connect(new InetSocketAddress(args[0], serverPort));
+            System.out.print("Enter 'upload,''download,'rename,' or 'delete' : ");// put file defults here
+            String filename= scanner.nextLine();
+            ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
+            byte[] a =new byte[Status_Code_length];
+            ByteBuffer buffer = ByteBuffer.wrap((message+filename).getBytes());
+            switch (message) {
+                case "delete":
+                    System.out.println("Please enter file name");
+                    SocketChannel channel = SocketChannel.open();
+                    channel.connect(new InetSocketAddress(args[0], serverPort));
+                    channel.write(buffer);
+                    channel.shutdownOutput();
+                    channel.read(code);
+                    code.flip();
+                    code.get(a);
+                    System.out.println(new String(a));
 
-            ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-            // read  the buffer content and write that to TCP channel
-            channel.write(buffer);
+                    break;
+                case "u":
 
-            ByteBuffer serverReply = ByteBuffer.allocate(1024);
-            int bytesRead = channel.read(serverReply);
-            if (bytesRead > 0) {
-                serverReply.flip();
-                byte[] serverMessage = new byte[bytesRead];
-                serverReply.get(serverMessage);
-                System.out.println(new String(serverMessage));
-            } else {
-                System.out.printf("Error: no respone from the server.");
+                    break;
+                case "down":
+                    break;
+                case "r":
+                    System.out.println("Please enter file name");
+                    String newFileName;
+                    SocketChannel channel1 =SocketChannel.open();
+                    channel1.connect(new InetSocketAddress(args[0], serverPort));
+                    channel1.write(buffer);
+                    channel1.shutdownOutput();
+                    channel1.read(code);
+                    code.flip();
+                    code.get(a);
+                    System.out.println(new String(a));
+                    break;
+                case "Q":
+
+                    break;
+
+                default:
+                    System.out.println("Invalid command!");
+
+
             }
-            channel.close();
+} while (message.equals("q"));{
         }
     }
 }
+//while (message.equals("Q")) {
+//            // read  the buffer content and write that to TCP channel
+//
+//
+//
+//            if (bytesRead > 0) {
+//                serverReply.flip();
+//                byte[] serverMessage = new byte[bytesRead];
+//                serverReply.get(serverMessage);
+//                System.out.println(new String(serverMessage));
+//            } else {
+//                System.out.print("Error: no respone from the server.");
+//            }
+//            channel.close();
+//            channel.close();
 
 
