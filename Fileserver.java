@@ -1,12 +1,57 @@
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-public class Fileserver { public static void main(String[] args) {
+public class Fileserver {
+    public static void main(String[] args) throws Exception {
+    int port = 3000;
+    ServerSocketChannel welcomeChannel = ServerSocketChannel.open();
+    welcomeChannel.socket().bind(new InetSocketAddress(port));
+    while (true){
+        SocketChannel serverChannale =welcomeChannel.accept();
+        ByteBuffer request =ByteBuffer.allocate(2500);
+       int numbBytes =0;
+       do {
 
-    try {
+
+           numbBytes = serverChannale.read(request);
+       }while (numbBytes >=0);
+        //while(SocketChannel.read(request) >=0);
+        char command =request.getChar();
+
+        switch (command){
+            case 'D':
+                byte[] a = new byte[request.remaining()];
+                request.get(a);
+                String fileName = new String(a);
+                File file = new File(fileName);
+                boolean success =false;
+                if(file.exists()) {
+                    success = file.delete();
+                    if (success) {
+                        ByteBuffer code = ByteBuffer.wrap("01".getBytes());
+                        serverChannale.write(code);
+                    } else {
+                        ByteBuffer code = ByteBuffer.wrap("00".getBytes());
+                        serverChannale.write(code);
+                    }
+                }
+                serverChannale.close();
+            case 'L':
+                break;
+        }
+
+        }
+    }
+}
+
+
+
+
+    /*try {
 
         ServerSocketChannel wellcomChannel = ServerSocketChannel.open();
         wellcomChannel.bind(new InetSocketAddress(3000));
@@ -29,4 +74,4 @@ public class Fileserver { public static void main(String[] args) {
         throw new RuntimeException(e);
     }
 }
-}
+}*/
