@@ -1,3 +1,6 @@
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -38,20 +41,41 @@ public class FileClient {
 
                     break;
                 case "download":
+                    System.out.println("Please enter file name");
+                    String fileName = scanner.nextLine();
+                    SocketChannel channel2 = SocketChannel.open();
+                    channel2.connect(new InetSocketAddress(args[0], serverPort));
+                    ByteBuffer requestBuffer = ByteBuffer.wrap(("download " + fileName).getBytes());
+                    channel2.write(requestBuffer);
+                    channel2.shutdownOutput();
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                         InputStream inputStream = channel2.socket().getInputStream()) {
+                        int bytesRead;
 
+                        while ((bytesRead = inputStream.read(buffer.array())) != -1) {
+                            fileOutputStream.write(buffer.array(), 0, bytesRead);
+                        }
+
+                        System.out.println("File downloaded successfully.");
+                    } catch (IOException e) {
+                        System.err.println("Error while downloading the file: " + e.getMessage());
+                    }
+
+
+                    channel2.close();
                     break;
                 case "rename":
                     System.out.println("Please enter file name");
                     String newFileName;
-                    SocketChannel channel2 =SocketChannel.open();
-                    channel2.connect(new InetSocketAddress(args[0], serverPort));
-                    channel2.write(buffer);
-                    channel2.shutdownOutput();
-                    channel2.read(code);
+                    SocketChannel channel3 =SocketChannel.open();
+                    channel3.connect(new InetSocketAddress(args[0], serverPort));
+                    channel3.write(buffer);
+                    channel3.shutdownOutput();
+                    channel3.read(code);
                     code.flip();
                     code.get(a);
                     System.out.println(new String(a));
-                    channel2.close();
+                    channel3.close();
                     break;
                 case "Q":
 
