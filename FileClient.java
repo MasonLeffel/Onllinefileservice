@@ -16,7 +16,7 @@ public class FileClient {
         do {
             Scanner scanner = new Scanner(System.in);
             message = scanner.nextLine();
-            System.out.print("Enter 'upload,''download,'rename,' or 'delete' : ");// put file defults here
+            System.out.print("Enter 'upload,''download,'rename,' or 'delete' or 'Q' to quit: ");// put file defults here
             String filename= scanner.nextLine();
             ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
             byte[] a =new byte[Status_Code_length];
@@ -34,12 +34,13 @@ public class FileClient {
                     System.out.println(new String(a));
                     channel.close();
                     break;
-                case "u":
+                case "upload":
 
                     break;
-                case "down":
+                case "download":
+
                     break;
-                case "r":
+                case "rename":
                     System.out.println("Please enter file name");
                     String newFileName;
                     SocketChannel channel2 =SocketChannel.open();
@@ -61,7 +62,7 @@ public class FileClient {
 
 
             }
-} while (message.equals("q"));{
+} while (message.equals("Q"));{
         }
     }
 }

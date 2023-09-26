@@ -42,6 +42,11 @@ public class Fileserver {
                 serverChannale.close();
             case 'L':
                 break;
+
+
+
+
+
         }
 
         }
