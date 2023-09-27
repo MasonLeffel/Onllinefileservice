@@ -11,45 +11,41 @@ public class Fileserver {
     ServerSocketChannel welcomeChannel = ServerSocketChannel.open();
     welcomeChannel.socket().bind(new InetSocketAddress(port));
     while (true){
-        SocketChannel serverChannale =welcomeChannel.accept();
+        SocketChannel serverChannel =welcomeChannel.accept();
         ByteBuffer request =ByteBuffer.allocate(2500);
        int numbBytes =0;
        do {
 
 
-           numbBytes = serverChannale.read(request);
+           numbBytes = serverChannel.read(request);
        }while (numbBytes >=0);
         //while(SocketChannel.read(request) >=0);
-        char command =request.getChar();
-
+        char command = (char) request.get();
+        System.out.println("recived command:" +command);
         switch (command){
             case 'D':
                 byte[] a = new byte[request.remaining()];
                 request.get(a);
                 String fileName = new String(a);
-                File file = new File(fileName);
+                File file = new File(fileName);//add to file system
                 boolean success =false;
                 if(file.exists()) {
                     success = file.delete();
                     if (success) {
                         ByteBuffer code = ByteBuffer.wrap("01".getBytes());
-                        serverChannale.write(code);
+                        serverChannel.write(code);
                     } else {
                         ByteBuffer code = ByteBuffer.wrap("00".getBytes());
-                        serverChannale.write(code);
+                        serverChannel.write(code);
                     }
                 }
-                serverChannale.close();
+                serverChannel.close();
             case 'L':
                 break;
-
-
-
-
-
         }
 
         }
+
     }
 }
 
