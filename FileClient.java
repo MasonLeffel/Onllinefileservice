@@ -23,13 +23,13 @@ public class FileClient {
             String filename= scanner.nextLine();
             ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
             byte[] a =new byte[Status_Code_length];
-            ByteBuffer buffer = ByteBuffer.wrap((message+filename).getBytes());
+            ByteBuffer request = ByteBuffer.wrap((message+filename).getBytes());
             switch (message) {
                 case "delete":
                     System.out.println("Please enter file name");
                     SocketChannel channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(args[0], serverPort));
-                    channel.write(buffer);
+                    channel.write(request);
                     channel.shutdownOutput();
                     channel.read(code);
                     code.flip();
@@ -42,18 +42,18 @@ public class FileClient {
                     break;
                 case "download":
                     System.out.println("Please enter file name");
-                    String fileName = scanner.nextLine();
+                    filename = scanner.nextLine();
                     SocketChannel channel2 = SocketChannel.open();
                     channel2.connect(new InetSocketAddress(args[0], serverPort));
-                    ByteBuffer requestBuffer = ByteBuffer.wrap(("download " + fileName).getBytes());
+                    ByteBuffer requestBuffer = ByteBuffer.wrap(("download " + filename).getBytes());
                     channel2.write(requestBuffer);
                     channel2.shutdownOutput();
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(filename);
                          InputStream inputStream = channel2.socket().getInputStream()) {
                         int bytesRead;
 
-                        while ((bytesRead = inputStream.read(buffer.array())) != -1) {
-                            fileOutputStream.write(buffer.array(), 0, bytesRead);
+                        while ((bytesRead = inputStream.read(request.array())) != -1) {
+                            fileOutputStream.write(request.array(), 0, bytesRead);
                         }
 
                         System.out.println("File downloaded successfully.");
@@ -66,10 +66,11 @@ public class FileClient {
                     break;
                 case "rename":
                     System.out.println("Please enter file name");
-                    String newFileName;
+                    String newFileName =scanner.nextLine();
+                    ByteBuffer requestRename = ByteBuffer.wrap((message+newFileName).getBytes());
                     SocketChannel channel3 =SocketChannel.open();
                     channel3.connect(new InetSocketAddress(args[0], serverPort));
-                    channel3.write(buffer);
+                    channel3.write(requestRename);
                     channel3.shutdownOutput();
                     channel3.read(code);
                     code.flip();
