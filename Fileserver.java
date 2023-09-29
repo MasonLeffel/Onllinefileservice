@@ -1,83 +1,55 @@
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-public class Fileserver {
+public class FileServer {
     public static void main(String[] args) throws Exception {
-    int port = 3000;
-    ServerSocketChannel welcomeChannel = ServerSocketChannel.open();
-    welcomeChannel.socket().bind(new InetSocketAddress(port));
-    while (true){
-        SocketChannel serverChannale =welcomeChannel.accept();
-        ByteBuffer request =ByteBuffer.allocate(2500);
-       int numbBytes =0;
-       do {
+        int port = 3000;
+        ServerSocketChannel welcomeChannel = ServerSocketChannel.open();
 
+        //server should bind to this port
+        welcomeChannel.socket().bind(new InetSocketAddress(port));
+        while (true) {
+            SocketChannel serverChannel = welcomeChannel.accept();
+            ByteBuffer request = ByteBuffer.allocate(2500);
+            int numBytes = 0;
+            do {
+                numBytes = serverChannel.read(request);
+            } while (numBytes >= 0);
 
-           numbBytes = serverChannale.read(request);
-       }while (numbBytes >=0);
-       request.flip();
-        //while(SocketChannel.read(request) >=0);
-        char command =(char) request.get();
+            request.flip();
+            char command = (char) request.get();
 
-        switch (command){
-            case 'D':{
-                byte[] a = new byte[request.remaining()];
-                request.get(a);
-                String fileName = new String(a);
-                File file = new File(fileName);
-                boolean success =false;
-                if(file.exists()) {
-                    success = file.delete();
-                    if (success) {
-                        ByteBuffer code = ByteBuffer.wrap("01".getBytes());
-                        serverChannale.write(code);
-                    } else {
-                        ByteBuffer code = ByteBuffer.wrap("00".getBytes());
-                        serverChannale.write(code);
+            System.out.println("Receive command: " + command);
+
+            boolean success = false;
+
+            switch (command) {
+                case 'E': {
+                    byte[] a = new byte[request.remaining()];
+                    request.get(a);
+                    String fileName = new String(a);
+                    System.out.println("File to delete: " + fileName);
+                    File file = new File("ServerFiles/" + fileName);
+
+                    if (file.exists()) {
+                        success = file.delete();
                     }
+
+                    if (success) {
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serverChannel.write(code);
+                    }
+                    serverChannel.close();
+                    break;
                 }
-                serverChannale.close();}
-            case 'L': {
-                break;
+
+                case 'L': {
+
+                }
             }
-
-
-
-
-        }
-
         }
     }
 }
-
-
-
-
-    /*try {
-
-        ServerSocketChannel wellcomChannel = ServerSocketChannel.open();
-        wellcomChannel.bind(new InetSocketAddress(3000));
-
-        while (true){
-            SocketChannel socketChannel = wellcomChannel.accept();
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
-            //read from TCP channel and write into the buffer
-            int bytesRead= socketChannel.read(buffer);
-            buffer.flip();
-
-            byte[] a =new byte[bytesRead];
-            buffer.get(a);
-            System.out.println(new String(a));
-            buffer.rewind();
-            socketChannel.write(buffer);
-            socketChannel.close();
-        }
-    } catch (IOException e) {
-        throw new RuntimeException(e);
-    }
-}
-}*/
