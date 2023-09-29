@@ -29,7 +29,7 @@ public class FileClient {
             byte[] a =new byte[Status_Code_length];
             ByteBuffer request = ByteBuffer.wrap((message+filename).getBytes());
             switch (message) {
-                case "E":
+                case "E" -> {
                     System.out.println("Please enter file name");
                     SocketChannel channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(args[0], serverPort));
@@ -40,11 +40,11 @@ public class FileClient {
                     code.get(a);
                     System.out.println(new String(a));
                     channel.close();
-                    break;
-                case "U":
+                }
+                case "U" -> {
 
-                    break;
-                case "D":
+                }
+                case "D" -> {
                     System.out.println("Please enter file name");
                     filename = scanner.nextLine();
                     SocketChannel channel2 = SocketChannel.open();
@@ -67,12 +67,12 @@ public class FileClient {
 
 
                     channel2.close();
-                    break;
-                case "R":
+                }
+                case "R" -> {
                     System.out.println("Please enter file name");
-                    String newFileName =scanner.nextLine();
-                    ByteBuffer requestRename = ByteBuffer.wrap((message+newFileName).getBytes());
-                    SocketChannel channel3 =SocketChannel.open();
+                    String newFileName = scanner.nextLine();
+                    ByteBuffer requestRename = ByteBuffer.wrap((message + newFileName).getBytes());
+                    SocketChannel channel3 = SocketChannel.open();
                     channel3.connect(new InetSocketAddress(args[0], serverPort));
                     channel3.write(requestRename);
                     channel3.shutdownOutput();
@@ -81,15 +81,11 @@ public class FileClient {
                     code.get(a);
                     System.out.println(new String(a));
                     channel3.close();
-                    break;
-                case "Q":
+                }
+                case "Q" -> {
 
-                    break;
-
-                default:
-                    System.out.println("Invalid command!");
-
-
+                }
+                default -> System.out.println("Invalid command!");
             }
 } while (message.equals("Q"));{
         }
