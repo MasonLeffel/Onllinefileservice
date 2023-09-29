@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class FileClient {
@@ -72,8 +71,8 @@ public class FileClient {
                     SocketChannel channel3 =SocketChannel.open();
                     channel3.connect(new InetSocketAddress(args[0], serverPort));
                     channel3.write(requestRename);
-                    channel3.read(code);
                     channel3.shutdownOutput();
+                    channel3.read(code);
                     code.flip();
                     code.get(a);
                     System.out.println(new String(a));
@@ -89,7 +88,6 @@ public class FileClient {
 
             }
 } while (message.equals("Q"));{
-            System.out.println("Thanks for using me");
         }
     }
 }
