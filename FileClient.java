@@ -18,14 +18,18 @@ public class FileClient {
         int serverPort = Integer.parseInt(args[1]);
         do {
             Scanner scanner = new Scanner(System.in);
-            message = scanner.nextLine();
-            System.out.print("Enter 'upload,''download,'rename,' or 'delete' or 'Q' to quit: ");// put file defults here
+            System.out.print("""
+                    Enter 'U' for Upload\s
+                    'D' for Download\s
+                    'E' for Delete\s
+                     'Q' to quit:\s""");// put file defults here
+            message = scanner.nextLine().toUpperCase();
             String filename= scanner.nextLine();
             ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
             byte[] a =new byte[Status_Code_length];
             ByteBuffer request = ByteBuffer.wrap((message+filename).getBytes());
             switch (message) {
-                case "delete":
+                case "E":
                     System.out.println("Please enter file name");
                     SocketChannel channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(args[0], serverPort));
@@ -37,10 +41,10 @@ public class FileClient {
                     System.out.println(new String(a));
                     channel.close();
                     break;
-                case "upload":
+                case "U":
 
                     break;
-                case "download":
+                case "D":
                     System.out.println("Please enter file name");
                     filename = scanner.nextLine();
                     SocketChannel channel2 = SocketChannel.open();
@@ -64,7 +68,7 @@ public class FileClient {
 
                     channel2.close();
                     break;
-                case "rename":
+                case "R":
                     System.out.println("Please enter file name");
                     String newFileName =scanner.nextLine();
                     ByteBuffer requestRename = ByteBuffer.wrap((message+newFileName).getBytes());
