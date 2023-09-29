@@ -19,11 +19,12 @@ public class Fileserver {
 
            numbBytes = serverChannale.read(request);
        }while (numbBytes >=0);
+       request.flip();
         //while(SocketChannel.read(request) >=0);
-        char command =request.getChar();
+        char command =(char) request.get();
 
         switch (command){
-            case 'D':
+            case 'D':{
                 byte[] a = new byte[request.remaining()];
                 request.get(a);
                 String fileName = new String(a);
@@ -39,10 +40,10 @@ public class Fileserver {
                         serverChannale.write(code);
                     }
                 }
-                serverChannale.close();
-            case 'L':
+                serverChannale.close();}
+            case 'L': {
                 break;
-
+            }
 
 
 
