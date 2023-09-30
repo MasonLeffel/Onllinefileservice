@@ -7,7 +7,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
 public class FileClient {
-   private  final static int Status_Code_length =1;
+   final static int Status_Code_length =1;
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.out.print("Syntax: TCPEFileSystem <ServerIP> <ServerPort");

@@ -1,8 +1,10 @@
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 
 public class FileServer {
     public static void main(String[] args) throws Exception {
@@ -27,7 +29,7 @@ public class FileServer {
             boolean success = false;
 
             switch (command) {
-                case 'D': {
+                case 'E' -> {
                     byte[] a = new byte[request.remaining()];
                     request.get(a);
                     String fileName = new String(a);
@@ -41,13 +43,54 @@ public class FileServer {
                     if (success) {
                         ByteBuffer code = ByteBuffer.wrap("S".getBytes());
                         serverChannel.write(code);
+                    }else{
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
                     }
                     serverChannel.close();
-                    break;
                 }
+                case 'L' -> {
+                    byte[] a = new byte[request.remaining()];
+                    request.get(a);
+                    File file = new File("ServerFiles/");
+                    String[] fileList = file.list();
+                    if (fileList != null) {
+                        String fileString =String.join("\n", fileList);
+                        serverChannel.write(ByteBuffer.wrap(fileString.getBytes(Arrays.toString(fileList))));
 
-                case 'L': {
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serverChannel.write(code);
+                    }else{
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
+                    }
+                    serverChannel.close();
 
+                }
+                case 'D'->{
+                    byte[] a = new byte[request.remaining()];
+                    request.get(a);
+                    String fileName = new String(a);
+                    File file = new File("ServerFiles/");
+                    if (file.exists()) {
+                        FileInputStream fileInputStream = new FileInputStream(file);
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+
+                        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                            serverChannel.write(ByteBuffer.wrap(buffer, 0, bytesRead));
+                            fileInputStream.close();
+                        }
+                    }
+
+                    if (success) {
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serverChannel.write(code);
+                    }else{
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
+                    }
+                    serverChannel.close();
                 }
             }
         }
