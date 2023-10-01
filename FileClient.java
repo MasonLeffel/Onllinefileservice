@@ -22,7 +22,8 @@ public class FileClient {
                     Enter 'U' for Upload\s
                     'D' for Download\s
                     'E' for Delete\s
-                     'Q' to quit:\s""");// put file defults here
+                     'Q' to quit\s
+                     'R for rename: '""");// put file defults here
             message = scanner.nextLine().toUpperCase();
             String filename= scanner.nextLine();
             ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
@@ -83,7 +84,7 @@ public class FileClient {
                     channel3.close();
                 }
                 case "Q" -> {
-
+                    break;
                 }
                 default -> System.out.println("Invalid command!");
             }

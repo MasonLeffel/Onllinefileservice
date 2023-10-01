@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
@@ -71,7 +72,7 @@ public class FileServer {
                     byte[] a = new byte[request.remaining()];
                     request.get(a);
                     String fileName = new String(a);
-                    File file = new File("ServerFiles/");
+                    File file = new File("ServerFiles/" +fileName);
                     if (file.exists()) {
                         FileInputStream fileInputStream = new FileInputStream(file);
                         byte[] buffer = new byte[1024];
@@ -91,6 +92,31 @@ public class FileServer {
                         serverChannel.write(code);
                     }
                     serverChannel.close();
+                }
+                case 'R'->{
+                    byte[] a = new byte[request.remaining()];
+                    request.get(a);
+                    String fileName = new String(a);
+                    File file = new File("ServerFiles/" +fileName);
+                    if (file.exists()) {
+                        File newFile = new File("ServerFiles/");
+                        if (file.renameTo(newFile)) {
+                            System.out.println("Renamed file from " + fileName + " to " + newFile);
+                            byte[] response = "S".getBytes();
+                            serverChannel.write(ByteBuffer.wrap(response)); // Send 'S' for success
+                        } else {
+                            System.err.println("Failed to rename the file.");
+                            byte[] response = "F".getBytes();
+                            serverChannel.write(ByteBuffer.wrap(response));
+                        }
+
+                    }else{
+                        System.err.println("File not found.");
+                        byte[] response = "NF".getBytes();
+                        serverChannel.write(ByteBuffer.wrap(response));
+
+                    serverChannel.close();
+                }
                 }
             }
         }
