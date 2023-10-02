@@ -41,10 +41,11 @@ public class FileServer {
                         success = file.delete();
                     }
 
-                    if (success) {
-                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
-                        serverChannel.write(code);
-                    }else{
+                        if (success) {
+                            ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                            serverChannel.write(code);
+                        }
+                    else{
                         ByteBuffer code = ByteBuffer.wrap("F".getBytes());
                         serverChannel.write(code);
                     }
@@ -74,6 +75,7 @@ public class FileServer {
                     String fileName = new String(a);
                     File file = new File("ServerFiles/" +fileName);
                     if (file.exists()) {
+                        success =true;
                         FileInputStream fileInputStream = new FileInputStream(file);
                         byte[] buffer = new byte[1024];
                         int bytesRead;
