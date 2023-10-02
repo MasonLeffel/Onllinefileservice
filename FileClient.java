@@ -7,30 +7,38 @@ import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
 public class FileClient {
-   private  final static int Status_Code_length =1;
+   final static int Status_Code_length =1;
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.out.print("Syntax: TCPEFileSystem <ServerIP> <ServerPort");
             return;
         }
-        String message;
+        String command;
 
         int serverPort = Integer.parseInt(args[1]);
         do {
             Scanner scanner = new Scanner(System.in);
             System.out.print("""
-                    Enter 'U' for Upload\s
+                    Enter\n
+                    'U' for Upload\n
                     'D' for Download\s
                     'E' for Delete\s
-                     'Q' to quit:\s""");// put file defults here
-            message = scanner.nextLine().toUpperCase();
-            String filename= scanner.nextLine();
+                    'Q' to quit\s
+                    'R' for rename\n""");// put file defults here
+            command = scanner.nextLine().toUpperCase();
+
             ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
             byte[] a =new byte[Status_Code_length];
-            ByteBuffer request = ByteBuffer.wrap((message+filename).getBytes());
-            switch (message) {
-                case "E":
+
+            String filename = null;
+            ByteBuffer request = null;
+
+            switch (command) {
+                case "E" -> {
                     System.out.println("Please enter file name");
+                    filename= scanner.nextLine();
+                    request = ByteBuffer.wrap((command+filename).getBytes());
+
                     SocketChannel channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(args[0], serverPort));
                     channel.write(request);
@@ -40,11 +48,11 @@ public class FileClient {
                     code.get(a);
                     System.out.println(new String(a));
                     channel.close();
-                    break;
-                case "U":
+                }
+                case "U" -> {
 
-                    break;
-                case "D":
+                }
+                case "D" -> {
                     System.out.println("Please enter file name");
                     filename = scanner.nextLine();
                     SocketChannel channel2 = SocketChannel.open();
@@ -67,12 +75,14 @@ public class FileClient {
 
 
                     channel2.close();
-                    break;
-                case "R":
-                    System.out.println("Please enter file name");
-                    String newFileName =scanner.nextLine();
-                    ByteBuffer requestRename = ByteBuffer.wrap((message+newFileName).getBytes());
-                    SocketChannel channel3 =SocketChannel.open();
+                }
+                case "R" -> {
+                    System.out.println("Please enter current file name");
+                    filename= scanner.nextLine();
+                    System.out.println("Please enter new file name");
+                    String newFileName = scanner.nextLine();
+                    ByteBuffer requestRename = ByteBuffer.wrap((command + filename + '$' + newFileName).getBytes());
+                    SocketChannel channel3 = SocketChannel.open();
                     channel3.connect(new InetSocketAddress(args[0], serverPort));
                     channel3.write(requestRename);
                     channel3.shutdownOutput();
@@ -81,17 +91,12 @@ public class FileClient {
                     code.get(a);
                     System.out.println(new String(a));
                     channel3.close();
+                }
+                case "Q" -> {
                     break;
-                case "Q":
-
-                    break;
-
-                default:
-                    System.out.println("Invalid command!");
-
-
+                }
             }
-} while (message.equals("Q"));{
+} while (command.equals("Q"));{
         }
     }
 }
