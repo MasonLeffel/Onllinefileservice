@@ -1,11 +1,13 @@
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 public class FileServer {
-    public static void main(String[] args) throws Exception {
+    public static <FileOutputStream> void main(String[] args) throws Exception {
         int port = 3000;
         ServerSocketChannel welcomeChannel = ServerSocketChannel.open();
 
@@ -67,7 +69,52 @@ public class FileServer {
                 }
                 serverChannel.close();
                 break;
+                case 'D': {
+                    request.get(a);
+                    String fileName = new String(a);
+                    File file = new File("ServerFiles/");
+                    if (file.exists()) {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+                        success = true;
+
+                    if (success) {
+                            while ((bytesRead = file.hashCode()) != -1) {
+                                serverChannel.write(ByteBuffer.allocateDirect(bytesRead));
+                            ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                            serverChannel.write(code);
+                        }}else {
+                            ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                            serverChannel.write(code);
+                        }
+                    }
+                }
+
+                case 'L': {
+                    File fileList = new File("ServerFiles/");
+                    int data;
+                    while ((data = Integer.parseInt(String.valueOf(fileList))) != -1) {
+                        serverChannel.write(ByteBuffer.allocateDirect(data));
+                        success=true;
+                    }
+                    if (success) {
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serverChannel.write(code);
+                    }else{
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
+                    }
+                    serverChannel.close();
+                    }
+
+                case 'U':{
+
+                }
+
+                }
+
+
             }
+
         }
     }
-}
