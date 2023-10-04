@@ -52,9 +52,23 @@ public class FileClient {
                 }
 
                 case "U": {
-
+                System.out.println("Please enter file name");
+                filename=scanner.nextLine();
+                SocketChannel channel= SocketChannel.open();
+                channel.connect(new InetSocketAddress(args[0], serverPort));
+                ByteBuffer buffer =ByteBuffer.wrap(("upload " +filename).getBytes());
+                channel.write(buffer);
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(filename);
+                         InputStream inputStream = channel.socket().getInputStream()) {
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(request.array())) != -1) {
+                            fileOutputStream.write(request.array(), 0, bytesRead);
+                        }
+                        System.out.println("File upload successfully");
+                    }catch (IOException e){
+                        System.out.println("Error while downloading the file:"+ e.getMessage());
+                    }
                 }
-
                 case "D": {
                     System.out.println("Please enter file name");
                     filename = scanner.nextLine();
