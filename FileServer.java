@@ -124,10 +124,25 @@ public class FileServer {
                         serverChannel.write(code);
                     }
                     serverChannel.close();
-                    break;
+                    case 'U':{
+                        request.get(a);
+                        String fileName = new String(a);
+                        byte[] writer =fileName.getBytes();
+                        File file = new File("ServerFiles/");
+                        if (file.canWrite()){
+                            serverChannel.write(ByteBuffer.wrap(writer));
+                            success=true;
+                        }
+                        if (success){
+                            serverChannel.write(ByteBuffer.wrap("S".getBytes()));
+                        }
+                        else {
+                            serverChannel.write(ByteBuffer.wrap("F".getBytes()));
+                        }
                 }
-            } while (command != 'Q');
+            }
             break;
-        }
+        }while (command != 'Q');
     }
+}
 }
