@@ -7,7 +7,8 @@ import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
 public class FileClient {
-   final static int Status_Code_length =1;
+    final static int Status_Code_length = 1;
+
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.out.print("Syntax: TCPEFileSystem <ServerIP> <ServerPort");
@@ -18,27 +19,27 @@ public class FileClient {
         int serverPort = Integer.parseInt(args[1]);
         do {
             Scanner scanner = new Scanner(System.in);
-            System.out.print("""
-                    Enter\n
-                    'U' for Upload\n
-                    'D' for Download\s
-                    'E' for Delete\s
-                    'Q' to quit\s
-                    'R' for rename\n""");// put file defults here
+            System.out.print("Enter: \n" +
+                    " 'L' for list\n" +
+                    " 'R' for rename\n" +
+                    " 'E' for Delete\n" +
+                    " 'U' for Upload\n" +
+                    " 'D' for Download\n" +
+                    " 'Q' to quit\n"
+            );
             command = scanner.nextLine().toUpperCase();
 
             ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
-            byte[] a =new byte[Status_Code_length];
+            byte[] a = new byte[Status_Code_length];
 
             String filename = null;
             ByteBuffer request = null;
 
             switch (command) {
-                case "E" -> {
+                case "E" : {
                     System.out.println("Please enter file name");
-                    filename= scanner.nextLine();
-                    request = ByteBuffer.wrap((command+filename).getBytes());
-
+                    filename = scanner.nextLine();
+                    request = ByteBuffer.wrap((command + filename).getBytes());
                     SocketChannel channel = SocketChannel.open();
                     channel.connect(new InetSocketAddress(args[0], serverPort));
                     channel.write(request);
@@ -49,10 +50,12 @@ public class FileClient {
                     System.out.println(new String(a));
                     channel.close();
                 }
-                case "U" -> {
+
+                case "U": {
 
                 }
-                case "D" -> {
+
+                case "D": {
                     System.out.println("Please enter file name");
                     filename = scanner.nextLine();
                     SocketChannel channel2 = SocketChannel.open();
@@ -76,9 +79,10 @@ public class FileClient {
 
                     channel2.close();
                 }
-                case "R" -> {
+
+                case "R": {
                     System.out.println("Please enter current file name");
-                    filename= scanner.nextLine();
+                    filename = scanner.nextLine();
                     System.out.println("Please enter new file name");
                     String newFileName = scanner.nextLine();
                     ByteBuffer requestRename = ByteBuffer.wrap((command + filename + '$' + newFileName).getBytes());
@@ -92,11 +96,13 @@ public class FileClient {
                     System.out.println(new String(a));
                     channel3.close();
                 }
-                case "Q" -> {
+
+                case "Q": {
                     break;
                 }
             }
-} while (command.equals("Q"));{
+        } while (command.equals("Q"));
+        {
         }
     }
 }
