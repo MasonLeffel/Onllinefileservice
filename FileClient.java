@@ -140,9 +140,7 @@ public class FileClient {
                 }
 
                 default: {
-                    if (!command.equals("Q")) {
                         System.out.println("Invalid command!\n");
-                    }
                 }
             }
         } while (!command.equals("Q"));
