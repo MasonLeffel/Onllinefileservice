@@ -1,13 +1,11 @@
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
 public class FileClient {
-    final static int Status_Code_length = 1;
+    final static int STATUS_CODE_LENGTH = 1;
 
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
@@ -29,26 +27,59 @@ public class FileClient {
             );
             command = scanner.nextLine().toUpperCase();
 
-            ByteBuffer code = ByteBuffer.allocate(Status_Code_length);
-            byte[] a = new byte[Status_Code_length];
+            ByteBuffer code = ByteBuffer.allocate(STATUS_CODE_LENGTH);
+            byte[] a = new byte[STATUS_CODE_LENGTH];
 
-            String filename = null;
+            String fileName = null;
             ByteBuffer request = null;
+            String serverResponse = null;
+
+            SocketChannel channel = SocketChannel.open();
+            channel.connect(new InetSocketAddress(args[0], serverPort));
 
             switch (command) {
-                case "E" : {
+                case "E": {
                     System.out.println("Please enter file name");
-                    filename = scanner.nextLine();
-                    request = ByteBuffer.wrap((command + filename).getBytes());
-                    SocketChannel channel = SocketChannel.open();
-                    channel.connect(new InetSocketAddress(args[0], serverPort));
+                    fileName = scanner.nextLine();
+                    request = ByteBuffer.wrap((command + fileName).getBytes());
                     channel.write(request);
                     channel.shutdownOutput();
                     channel.read(code);
                     code.flip();
                     code.get(a);
-                    System.out.println(new String(a));
+
+                    serverResponse = new String(a);
+                    if (serverResponse.equals("S")) {
+                        System.out.println("File deleted\n");
+                    } else if (serverResponse.equals("F")) {
+                        System.out.println("File not found\n");
+                    }
                     channel.close();
+                    break;
+                }
+
+                case "L": {
+                    request = ByteBuffer.wrap((command).getBytes());
+                    channel.write(request);
+                    channel.shutdownOutput();
+                    channel.read(code);
+                    code.flip();
+                    code.get(a);
+                    serverResponse = new String(a);
+
+                    if (serverResponse.equals("S")) {
+                        ByteBuffer message = ByteBuffer.allocate(1024);
+                        channel.read(message);
+                        message.flip();
+
+                        String fileList = new String(message.array(), 0, message.limit());
+                        System.out.println("List of files available on the server:");
+                        System.out.println(fileList);
+                    } else {
+                        System.out.println("No files available on the server.");
+                    }
+                    channel.close();
+                    break;
                 }
 
                 case "U": {
@@ -57,14 +88,16 @@ public class FileClient {
 
                 case "D": {
                     System.out.println("Please enter file name");
-                    filename = scanner.nextLine();
-                    SocketChannel channel2 = SocketChannel.open();
-                    channel2.connect(new InetSocketAddress(args[0], serverPort));
-                    ByteBuffer requestBuffer = ByteBuffer.wrap(("download " + filename).getBytes());
-                    channel2.write(requestBuffer);
-                    channel2.shutdownOutput();
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(filename);
-                         InputStream inputStream = channel2.socket().getInputStream()) {
+                    fileName = scanner.nextLine();
+                    request = ByteBuffer.wrap((command + fileName).getBytes());
+                    channel.write(request);
+                    channel.shutdownOutput();
+
+
+                    try {
+                        FileOutputStream fileOutputStream = new FileOutputStream("ClientFiles/DownloadedFiles/" + fileName);
+                        byte[] fileBuffer = new byte[8000];
+                        InputStream inputStream = channel.socket().getInputStream();
                         int bytesRead;
 
                         while ((bytesRead = inputStream.read(request.array())) != -1) {
@@ -77,33 +110,42 @@ public class FileClient {
                     }
 
 
-                    channel2.close();
+                    channel.close();
+                    break;
                 }
 
                 case "R": {
                     System.out.println("Please enter current file name");
-                    filename = scanner.nextLine();
+                    fileName = scanner.nextLine();
                     System.out.println("Please enter new file name");
                     String newFileName = scanner.nextLine();
-                    ByteBuffer requestRename = ByteBuffer.wrap((command + filename + '$' + newFileName).getBytes());
-                    SocketChannel channel3 = SocketChannel.open();
-                    channel3.connect(new InetSocketAddress(args[0], serverPort));
-                    channel3.write(requestRename);
-                    channel3.shutdownOutput();
-                    channel3.read(code);
+                    ByteBuffer requestRename = ByteBuffer.wrap((command + fileName + '$' + newFileName).getBytes());
+                    channel.write(requestRename);
+                    channel.shutdownOutput();
+                    channel.read(code);
                     code.flip();
                     code.get(a);
                     System.out.println(new String(a));
-                    channel3.close();
+                    channel.close();
+                    break;
                 }
 
                 case "Q": {
+                    request = ByteBuffer.wrap((command).getBytes());
+                    channel.write(request);
+                    channel.shutdownOutput();
+
+                    System.out.println("Bye!");
                     break;
                 }
+
+                default: {
+                    if (!command.equals("Q")) {
+                        System.out.println("Invalid command!\n");
+                    }
+                }
             }
-        } while (command.equals("Q"));
-        {
-        }
+        } while (!command.equals("Q"));
     }
 }
 

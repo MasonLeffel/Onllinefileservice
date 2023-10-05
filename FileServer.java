@@ -1,10 +1,10 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class FileServer {
@@ -32,88 +32,17 @@ public class FileServer {
             byte[] a = new byte[request.remaining()];
             request.get(a);
 
-            StringBuilder response = new StringBuilder();
 
-            do {
-                switch (command) {
-                    //Delete
-                    case 'E': {
-                        String fileName = new String(a);
-                        System.out.println("File to delete: " + fileName);
-                        File file = new File("ServerFiles/" + fileName);
+            switch (command) {
+                //Delete
+                case 'E': {
+                    String fileName = new String(a);
+                    System.out.println("File to delete: " + fileName);
+                    File file = new File("ServerFiles/" + fileName);
 
-                        if (file.exists()) {
-                            success = file.delete();
-                        }
 
-                        if (success) {
-                            ByteBuffer code = ByteBuffer.wrap("S".getBytes());
-                            serverChannel.write(code);
-                        } else {
-                            ByteBuffer code = ByteBuffer.wrap("F".getBytes());
-                            serverChannel.write(code);
-                        }
-                        serverChannel.close();
-                    }
-
-                    //List
-                    case 'L': {
-                        File file = new File("ServerFiles/");
-                        String[] fileList = file.list();
-                        if (fileList != null) {
-                            String fileString = String.join("\n", fileList);
-                            System.out.println(fileString);
-                            serverChannel.write(ByteBuffer.wrap(fileString.getBytes(Arrays.toString(fileList))));
-
-                            ByteBuffer code = ByteBuffer.wrap("S".getBytes());
-                            serverChannel.write(code);
-                        } else {
-                            ByteBuffer code = ByteBuffer.wrap("F".getBytes());
-                            serverChannel.write(code);
-                        }
-                        serverChannel.close();
-
-                    }
-
-                    case 'D': {
-                        String fileName = new String(a);
-                        File file = new File("ServerFiles/" + fileName);
-                        if (file.exists()) {
-                            success = true;
-                            FileInputStream fileInputStream = new FileInputStream(file);
-                            byte[] buffer = new byte[1024];
-                            int bytesRead;
-
-                            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                                serverChannel.write(ByteBuffer.wrap(buffer, 0, bytesRead));
-                                fileInputStream.close();
-                            }
-                        }
-
-                        if (success) {
-                            ByteBuffer code = ByteBuffer.wrap("S".getBytes());
-                            serverChannel.write(code);
-                        } else {
-                            ByteBuffer code = ByteBuffer.wrap("F".getBytes());
-                            serverChannel.write(code);
-                        }
-                        serverChannel.close();
-                    }
-
-                    //Rename
-                    case 'R': {
-                        String message = new String(a);
-                        String[] fileNameRequest = message.split("\\$");
-                        String fileName = fileNameRequest[0];
-                        String newName = fileNameRequest[1];
-
-                        System.out.println("Renaming: " + fileName);
-                        System.out.println("To: " + newName);
-                        File file = new File("ServerFiles/" + fileName);
-                        File newFile = new File("ServerFiles/" + newName);
-                        if (file.exists()) {
-                            success = file.renameTo(newFile);
-                        }
+                    if (file.exists()) {
+                        success = file.delete();
                     }
 
                     if (success) {
@@ -123,26 +52,98 @@ public class FileServer {
                         ByteBuffer code = ByteBuffer.wrap("F".getBytes());
                         serverChannel.write(code);
                     }
+
+                    break;
+                }
+
+                //List
+                case 'L': {
+                    File directory = new File("ServerFiles/");
+                    File[] fileList = directory.listFiles();
+                    StringBuilder response = new StringBuilder();
+
+                    if (fileList != null) {
+                        success = true;
+                        for (File file : fileList) {
+                            response.append(file.getName()).append("\n");
+                        }
+                    }
+
+                    System.out.println(response);
+
+                    if (success) {
+                        ByteBuffer code = ByteBuffer.wrap(("S" + response).getBytes());
+                        serverChannel.write(code);
+                    } else {
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
+                    }
+                    break;
+                }
+
+                case 'D': {
+                    String fileName = new String(a);
+                    File file = new File("ServerFiles/" + fileName);
+                    if (file.exists()) {
+                        success = true;
+                    }
+
+
+                   try{
+                       FileInputStream fileInputStream = new FileInputStream(file);
+                       byte[] fileBuffer = new byte[8000];
+                       int bytesRead;
+
+                       while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
+                           serverChannel.write(ByteBuffer.wrap(fileBuffer, 0, bytesRead));
+                           fileInputStream.close();
+                       }
+                   }catch (IOException e){
+                       success = false;
+                   }
+
+                    if (success) {
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serverChannel.write(code);
+                    } else {
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
+                    }
                     serverChannel.close();
-                    case 'U':{
-                        request.get(a);
-                        String fileName = new String(a);
-                        byte[] writer =fileName.getBytes();
-                        File file = new File("ServerFiles/");
-                        if (file.canWrite()){
-                            serverChannel.write(ByteBuffer.wrap(writer));
-                            success=true;
-                        }
-                        if (success){
-                            serverChannel.write(ByteBuffer.wrap("S".getBytes()));
-                        }
-                        else {
-                            serverChannel.write(ByteBuffer.wrap("F".getBytes()));
-                        }
+                    break;
+                }
+
+                //Rename
+                case 'R': {
+                    String message = new String(a);
+                    String[] fileNameRequest = message.split("\\$");
+                    String fileName = fileNameRequest[0];
+                    String newName = fileNameRequest[1];
+
+                    System.out.println("Renaming: " + fileName);
+                    System.out.println("To: " + newName);
+                    File file = new File("ServerFiles/" + fileName);
+                    File newFile = new File("ServerFiles/" + newName);
+                    if (file.exists()) {
+                        success = file.renameTo(newFile);
+                        System.out.println(success);
+                    }
+
+                    if (success) {
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serverChannel.write(code);
+                    } else {
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
+                    }
+                    break;
+                }
+
+                case 'Q':{
+                    break;
                 }
             }
-            break;
-        }while (command != 'Q');
+            serverChannel.close();
+        }
     }
-}
 }
