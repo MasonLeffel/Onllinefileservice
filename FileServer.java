@@ -3,9 +3,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class FileServer {
     public static void main(String[] args) throws Exception {
@@ -20,7 +17,7 @@ public class FileServer {
             int numBytes = 0;
             do {
                 numBytes = serverChannel.read(request);
-            } while (numBytes >= 0);
+            } while (request.position() < request.capacity() && numBytes >= 0);
 
             request.flip();
             char command = (char) request.get();
@@ -38,7 +35,7 @@ public class FileServer {
 
             switch (command) {
                 //Delete
-                case 'E': {
+                case 'E' -> {
                     String fileName = new String(a);
                     System.out.println("File to delete: " + fileName);
                     File file = new File("ServerFiles/" + fileName);
@@ -56,11 +53,11 @@ public class FileServer {
                         serverChannel.write(code);
                     }
 
-                    break;
                 }
 
+
                 //List
-                case 'L': {
+                case 'L' -> {
                     File directory = new File("ServerFiles/");
                     File[] fileList = directory.listFiles();
                     StringBuilder response = new StringBuilder();
@@ -81,11 +78,11 @@ public class FileServer {
                         ByteBuffer code = ByteBuffer.wrap("F".getBytes());
                         serverChannel.write(code);
                     }
-                    break;
                 }
 
+
                 //Download
-                case 'D': {
+                case 'D' -> {
                     String fileName = new String(a);
                     File file = new File("ServerFiles/" + fileName);
                     if (file.exists()) {
@@ -108,11 +105,11 @@ public class FileServer {
                         serverChannel.write(code);
                     }
                     serverChannel.close();
-                    break;
                 }
 
+
                 //Upload
-                case 'U': {
+                case 'U' -> {
                     String message = new String(a);
                     String[] fileRequest = message.split("\\$");
                     String fileName = fileRequest[0];
@@ -134,11 +131,11 @@ public class FileServer {
                     }
 
                     serverChannel.close();
-                    break;
                 }
 
+
                 //Rename
-                case 'R': {
+                case 'R' -> {
                     String message = new String(a);
                     String[] fileNameRequest = message.split("\\$");
                     String fileName = fileNameRequest[0];
@@ -160,11 +157,9 @@ public class FileServer {
                         ByteBuffer code = ByteBuffer.wrap("F".getBytes());
                         serverChannel.write(code);
                     }
-                    break;
                 }
+                case 'Q' -> {
 
-                case 'Q': {
-                    break;
                 }
             }
             serverChannel.close();
