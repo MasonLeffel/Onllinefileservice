@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public class FileServer {
     public static void main(String[] args) throws Exception {
-        int port = 3000;
+        int port = 3001;
         ServerSocketChannel welcomeChannel = ServerSocketChannel.open();
 
         //server should bind to this port
@@ -26,11 +26,14 @@ public class FileServer {
             char command = (char) request.get();
 
             System.out.println("Receive command: " + command);
+            System.out.println();
 
             boolean success = false;
 
             byte[] a = new byte[request.remaining()];
             request.get(a);
+
+            ByteBuffer messageCode;
 
 
             switch (command) {
@@ -81,34 +84,55 @@ public class FileServer {
                     break;
                 }
 
+                //Download
                 case 'D': {
                     String fileName = new String(a);
                     File file = new File("ServerFiles/" + fileName);
                     if (file.exists()) {
-                        success = true;
-                    }
-
-
-                   try{
-                       FileInputStream fileInputStream = new FileInputStream(file);
-                       byte[] fileBuffer = new byte[8000];
-                       int bytesRead;
-
-                       while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
-                           serverChannel.write(ByteBuffer.wrap(fileBuffer, 0, bytesRead));
-                           fileInputStream.close();
-                       }
-                   }catch (IOException e){
-                       success = false;
-                   }
-
-                    if (success) {
-                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
-                        serverChannel.write(code);
+                        messageCode = ByteBuffer.wrap("S".getBytes());
+                        try {
+                            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+                            String line;
+                            while ((line = bufferedReader.readLine()) != null) {
+                                ByteBuffer dataBuffer = ByteBuffer.wrap(line.getBytes());
+                                serverChannel.write(dataBuffer);
+                                dataBuffer.clear();
+                            }
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                            serverChannel.write(code);
+                        }
                     } else {
                         ByteBuffer code = ByteBuffer.wrap("F".getBytes());
                         serverChannel.write(code);
                     }
+                    serverChannel.close();
+                    break;
+                }
+
+                //Upload
+                case 'U': {
+                    String message = new String(a);
+                    String[] fileRequest = message.split("\\$");
+                    String fileName = fileRequest[0];
+                    String detail = fileRequest[1];
+                    System.out.println("Detail: " + detail);
+
+                    try {
+                        BufferedWriter writer = new BufferedWriter(new FileWriter("ServerFiles/" + fileName));
+                        writer.write(detail);
+                        writer.close();
+                        System.out.println("String written to file successfully.");
+
+                        ByteBuffer code = ByteBuffer.wrap("S".getBytes());
+                        serverChannel.write(code);
+                    } catch (IOException e) {
+                        ByteBuffer code = ByteBuffer.wrap("F".getBytes());
+                        serverChannel.write(code);
+                        e.printStackTrace();
+                    }
+
                     serverChannel.close();
                     break;
                 }
@@ -139,7 +163,7 @@ public class FileServer {
                     break;
                 }
 
-                case 'Q':{
+                case 'Q': {
                     break;
                 }
             }
