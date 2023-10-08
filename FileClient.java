@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
@@ -84,41 +85,50 @@ public class FileClient {
                 }
 
                 case "U": {
-                    System.out.println("Please enter file name");
+                    System.out.println("Please enter file name to upload");
                     fileName = scanner.nextLine();
                     File file = new File("ClientFiles/" + fileName);
 
-                    try (FileInputStream fileInputStream = new FileInputStream(file)) {
-                        ByteBuffer fileNameBuffer = ByteBuffer.wrap((command + fileName + "$").getBytes());
-                        channel.write(fileNameBuffer);
+                    if (!file.exists()) {
+                        System.out.println("File not found");
+                        break;
+                    }
 
-                        byte[] fileBuffer = new byte[8000];
-                        int bytesRead;
+                    try {
+                        request = ByteBuffer.allocate(2000);
+                        request.put(command.getBytes());
+                        request.putInt(fileName.length());
+                        request.put(fileName.getBytes());
 
-                        while ((bytesRead = fileInputStream.read(fileBuffer)) != -1) {
-                            ByteBuffer message = ByteBuffer.wrap(fileBuffer, 0, bytesRead);
-                            channel.write(message);
-                        }
+                        FileInputStream fs = new FileInputStream(file);
+                        FileChannel fc = fs.getChannel();
+
+                        do {
+                            request.flip();
+                            channel.write(request);
+                            request.clear();
+                        } while (fc.read(request) >= 0);
 
                         channel.shutdownOutput();
 
-                        code = ByteBuffer.allocate(STATUS_CODE_LENGTH);
                         channel.read(code);
                         code.flip();
-                        String responseCode = new String(code.array(), 0, code.limit());
+                        code.get(a);
+                        serverResponse = new String(a);
 
-                        if (responseCode.equals("S")) {
-                            System.out.println(fileName + " uploaded successfully.");
-                        } else {
-                            System.out.println("Error uploading the file.");
+                        if (serverResponse.equals("S")) {
+                            System.out.println("File successfully uploaded!");
+                        } else if (serverResponse.equals("F")) {
+                            System.out.println("Upload failed\n");
                         }
+
                     } catch (IOException e) {
                         e.printStackTrace();
+                        System.out.println("Error during file upload: " + e.getMessage());
                     }
                     System.out.println();
                     break;
                 }
-
                 case "D": {
                     System.out.println("Please enter file name");
                     fileName = scanner.nextLine();

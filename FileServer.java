@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
@@ -20,7 +21,7 @@ public class FileServer {
             int numBytes = 0;
             do {
                 numBytes = serverChannel.read(request);
-            } while (numBytes >= 0);
+            } while (request.position() < request.capacity() && numBytes >= 0);
 
             request.flip();
             char command = (char) request.get();
@@ -30,8 +31,7 @@ public class FileServer {
 
             boolean success = false;
 
-            byte[] a = new byte[request.remaining()];
-            request.get(a);
+
 
             ByteBuffer messageCode;
 
@@ -39,6 +39,9 @@ public class FileServer {
             switch (command) {
                 //Delete
                 case 'E': {
+                    byte[] a = new byte[request.remaining()];
+                    request.get(a);
+
                     String fileName = new String(a);
                     System.out.println("File to delete: " + fileName);
                     File file = new File("ServerFiles/" + fileName);
@@ -86,6 +89,8 @@ public class FileServer {
 
                 //Download
                 case 'D': {
+                    byte[] a = new byte[request.remaining()];
+                    request.get(a);
                     String fileName = new String(a);
                     File file = new File("ServerFiles/" + fileName);
                     if (file.exists()) {
@@ -113,32 +118,42 @@ public class FileServer {
 
                 //Upload
                 case 'U': {
-                    String message = new String(a);
-                    String[] fileRequest = message.split("\\$");
-                    String fileName = fileRequest[0];
-                    String detail = fileRequest[1];
-                    System.out.println("Detail: " + detail);
+                    int nameLength = request.getInt();
+                    byte[] byteRead = new byte[nameLength];
+                    request.get(byteRead);
+                    String fileName = new String(byteRead);
 
                     try {
-                        BufferedWriter writer = new BufferedWriter(new FileWriter("ServerFiles/" + fileName));
-                        writer.write(detail);
-                        writer.close();
-                        System.out.println("String written to file successfully.");
+                        File file = new File("ServerFiles/" + fileName);
+                        FileOutputStream fos = new FileOutputStream("ServerFiles/" + fileName, true);
+                        FileChannel fc = fos.getChannel();
+                        fc.write(request);
+                        request.clear();
 
+                        while (serverChannel.read(request) >= 0) {
+                            request.flip();
+                            fc.write(request);
+                            request.clear();
+                        }
+
+                        fos.close();
+                        fc.close();
+
+                        System.out.println("File uploaded successfully: " + fileName);
                         ByteBuffer code = ByteBuffer.wrap("S".getBytes());
                         serverChannel.write(code);
                     } catch (IOException e) {
+                        e.printStackTrace();
                         ByteBuffer code = ByteBuffer.wrap("F".getBytes());
                         serverChannel.write(code);
-                        e.printStackTrace();
                     }
-
-                    serverChannel.close();
                     break;
                 }
 
                 //Rename
                 case 'R': {
+                    byte[] a = new byte[request.remaining()];
+                    request.get(a);
                     String message = new String(a);
                     String[] fileNameRequest = message.split("\\$");
                     String fileName = fileNameRequest[0];
